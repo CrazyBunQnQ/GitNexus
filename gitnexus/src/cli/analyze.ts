@@ -43,10 +43,11 @@ function ensureHeap(): boolean {
 export interface AnalyzeOptions {
   force?: boolean;
   embeddings?: boolean;
+  embeddingNodeLimit?: string | number;
 }
 
 /** Threshold: auto-skip embeddings for repos with more nodes than this */
-const EMBEDDING_NODE_LIMIT = 50_000;
+const DEFAULT_EMBEDDING_NODE_LIMIT = 50_000;
 
 const PHASE_LABELS: Record<string, string> = {
   extracting: 'Scanning files',
@@ -246,8 +247,9 @@ export const analyzeCommand = async (
   let embeddingSkipReason = 'off (use --embeddings to enable)';
 
   if (options?.embeddings) {
-    if (stats.nodes > EMBEDDING_NODE_LIMIT) {
-      embeddingSkipReason = `skipped (${stats.nodes.toLocaleString()} nodes > ${EMBEDDING_NODE_LIMIT.toLocaleString()} limit)`;
+    const limit = options.embeddingNodeLimit ? parseInt(String(options.embeddingNodeLimit), 10) : DEFAULT_EMBEDDING_NODE_LIMIT;
+    if (stats.nodes > limit) {
+      embeddingSkipReason = `skipped (${stats.nodes.toLocaleString()} nodes > ${limit.toLocaleString()} limit)`;
     } else {
       embeddingSkipped = false;
     }
